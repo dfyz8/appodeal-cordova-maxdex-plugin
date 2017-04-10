@@ -58,7 +58,8 @@ public class AppodealPlugin extends CordovaPlugin {
     private static final String ACTION_DISABLE_LOCATION_PERMISSION_CHECK = "disableLocationPermissionCheck";
     private static final String ACTION_DISABLE_WRITE_EXTERNAL_STORAGE_CHECK = "disableWriteExternalStoragePermissionCheck";
 
-    private static final String ACTION_ENABLE_INTERSTITIAL_CALLBACKS = "enableInterstitialCallbacks";
+    private static final String ACTION_SET_INTERSTITIAL_CALLBACKS = "setInterstitialCallbacks";
+    //private static final String ACTION_ENABLE_INTERSTITIAL_CALLBACKS = "enableInterstitialCallbacks";
     private static final String ACTION_ENABLE_SKIPPABLE_VIDEO_CALLBACKS = "enableSkippableVideoCallbacks";
     private static final String ACTION_ENABLE_NON_SKIPPABLE_VIDEO_CALLBACKS = "enableNonSkippableVideoCallbacks";
     private static final String ACTION_ENABLE_REWARDED_CALLBACKS = "enableRewardedVideoCallbacks";
@@ -76,10 +77,18 @@ public class AppodealPlugin extends CordovaPlugin {
     private static final String ACTION_SET_INTERESTS = "setInterests";
 
     private boolean isInitialized = false;
-	private boolean bannerOverlap = true;
-	private ViewGroup parentView;
-	private BannerView bannerView;
+    private boolean bannerOverlap = true;
+    private ViewGroup parentView;
+    private BannerView bannerView;
     private UserSettings userSettings;
+
+    private static final String CALLBACK_INIT = "onInit";
+    private static final String CALLBACK_LOADED = "onLoaded";
+    private static final String CALLBACK_FAILED = "onFailedToLoad";
+    private static final String CALLBACK_CLICKED = "onClick";
+    private static final String CALLBACK_SHOWN = "onShown";
+    private static final String CALLBACK_CLOSED = "onClosed";
+    private CallbackContext interstitialCallbacks;
 
     @Override
     public boolean execute(String action, JSONArray args,
@@ -360,14 +369,15 @@ public class AppodealPlugin extends CordovaPlugin {
                 }
             });
             return true;
-        } else if (action.equals(ACTION_ENABLE_INTERSTITIAL_CALLBACKS)) {
-            final boolean setInterstitialCallbacks = args.getBoolean(0);
+        } else if (action.equals(ACTION_SET_INTERSTITIAL_CALLBACKS)) {
             cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(setInterstitialCallbacks) {
-                        Appodeal.setInterstitialCallbacks(interstitialListener);
-                    }
+                    interstitialCallbacks = callback;
+                    Appodeal.setInterstitialCallbacks(interstitialListener);
+                    PluginResult result = new PluginResult(PluginResult.Status.OK, CALLBACK_INIT);
+                    result.setKeepCallback(true);
+                    callback.sendPluginResult(result);
                 }
             });
             return true;
@@ -579,57 +589,67 @@ public class AppodealPlugin extends CordovaPlugin {
         }
         return type;
     }
-    
+
     private InterstitialCallbacks interstitialListener = new InterstitialCallbacks() {
 
         @Override
         public void onInterstitialShown() {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    webView.loadUrl ("javascript:cordova.fireDocumentEvent('onInterstitialShown');");
-                }
-            });
+          cordova.getActivity().runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                  PluginResult result = new PluginResult(PluginResult.Status.OK, CALLBACK_SHOWN);
+                  result.setKeepCallback(true);
+                  interstitialCallbacks.sendPluginResult(result);
+              }
+          });
         }
 
         @Override
         public void onInterstitialLoaded(boolean arg0) {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    webView.loadUrl ("javascript:cordova.fireDocumentEvent('onInterstitialLoaded');");
-                }
-            });
+          cordova.getActivity().runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                  PluginResult result = new PluginResult(PluginResult.Status.OK, CALLBACK_LOADED);
+                  result.setKeepCallback(true);
+                  interstitialCallbacks.sendPluginResult(result);
+              }
+          });
         }
 
         @Override
         public void onInterstitialFailedToLoad() {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    webView.loadUrl ("javascript:cordova.fireDocumentEvent('onInterstitialFailedToLoad');");
-                }
-            });
+          cordova.getActivity().runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                  PluginResult result = new PluginResult(PluginResult.Status.OK, CALLBACK_FAILED);
+                  result.setKeepCallback(true);
+                  interstitialCallbacks.sendPluginResult(result);
+              }
+          });
         }
 
         @Override
         public void onInterstitialClosed() {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    webView.loadUrl ("javascript:cordova.fireDocumentEvent('onInterstitialClosed');");
-                }
-            });
+          cordova.getActivity().runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                  PluginResult result = new PluginResult(PluginResult.Status.OK, CALLBACK_CLOSED);
+                  result.setKeepCallback(true);
+                  interstitialCallbacks.sendPluginResult(result);
+              }
+          });
         }
 
         @Override
         public void onInterstitialClicked() {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    webView.loadUrl ("javascript:cordova.fireDocumentEvent('onInterstitialClicked');");
-                }
-            });
+          cordova.getActivity().runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                  PluginResult result = new PluginResult(PluginResult.Status.OK, CALLBACK_CLICKED);
+                  result.setKeepCallback(true);
+                  interstitialCallbacks.sendPluginResult(result);
+              }
+          });
         }
     };
 
@@ -840,7 +860,7 @@ public class AppodealPlugin extends CordovaPlugin {
         }
 
     };
-	
+
 	private void sendPluginResult(CallbackContext callback, boolean b){
 		if(b) {
             callback.sendPluginResult(new PluginResult(PluginResult.Status.OK, true));
@@ -848,7 +868,7 @@ public class AppodealPlugin extends CordovaPlugin {
             callback.sendPluginResult(new PluginResult(PluginResult.Status.OK, false));
         }
 	}
-	
+
 	private View getWebView() {
         try {
             return (View) webView.getClass().getMethod("getView").invoke(webView);
@@ -856,7 +876,7 @@ public class AppodealPlugin extends CordovaPlugin {
             return (View) webView;
         }
     }
-	
+
 	private void showBanner(CallbackContext callback, int adType, String placement){
 		if (bannerView != null && bannerView.getParent() != null) {
 			((ViewGroup)bannerView.getParent()).removeView(bannerView);
@@ -885,21 +905,21 @@ public class AppodealPlugin extends CordovaPlugin {
                 parentView.addView(getWebView());
                 cordova.getActivity().setContentView(parentView);
             }
-			
+
 			if(adType == Appodeal.BANNER_TOP)
 				parentView.addView(bannerView, 0);
 			else
 				parentView.addView(bannerView);
-			
+
 			boolean res = false;
 			if(placement == null)
 				res = Appodeal.show(cordova.getActivity(), Appodeal.BANNER_VIEW);
 			else
 				res = Appodeal.show(cordova.getActivity(), Appodeal.BANNER_VIEW, placement);
-			
+
 			parentView.bringToFront();
             parentView.requestLayout();
-			
+
 			sendPluginResult(callback, res);
 		}
 	}

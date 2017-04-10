@@ -107,6 +107,10 @@ Appodeal.disableWriteExternalStoragePermissionCheck = function() {
     exec(null, null, "AppodealPlugin", "disableWriteExternalStoragePermissionCheck", []);
 };
 
+Appodeal.setInterstitialCallbacks = function(callback) {
+  exec(callback, null, "AppodealPlugin", "setInterstitialCallbacks", [])
+}
+
 Appodeal.enableInterstitialCallbacks = function(listener) {
     exec(null, null, "AppodealPlugin", "enableInterstitialCallbacks", [listener]);
 };
