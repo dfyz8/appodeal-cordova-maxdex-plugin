@@ -111,9 +111,6 @@ Appodeal.setInterstitialCallbacks = function(callback) {
   exec(callback, null, "AppodealPlugin", "setInterstitialCallbacks", [])
 }
 
-Appodeal.setInterstitialCallbacks = function(callback) {
-    exec(callback, null, "AppodealPlugin", "setInterstitialCallbacks", []);
-};
 
 Appodeal.setSkippableVideoCallbacks = function(callback) {
     exec(callback, null, "AppodealPlugin", "setSkippableVideoCallbacks", []);
